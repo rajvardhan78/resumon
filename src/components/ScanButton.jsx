@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const ScanButton = ({ disabled, onScan, isScanning }) => {
@@ -63,5 +64,3 @@ const ScanButton = ({ disabled, onScan, isScanning }) => {
 };
 
 export default ScanButton;
-
-

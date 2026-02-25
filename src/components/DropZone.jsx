@@ -1,10 +1,15 @@
 import { useState, useRef } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
+import { useAuth } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 
 const DropZone = ({ onFileSelect }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
+  const { isSignedIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -28,6 +33,11 @@ const DropZone = ({ onFileSelect }) => {
     e.stopPropagation();
     setIsDragging(false);
 
+    if (!isSignedIn) {
+      navigate('/sign-in');
+      return;
+    }
+
     const files = e.dataTransfer.files;
     if (files && files[0]) {
       handleFile(files[0]);
@@ -35,6 +45,11 @@ const DropZone = ({ onFileSelect }) => {
   };
 
   const handleFileInput = (e) => {
+    if (!isSignedIn) {
+      navigate('/sign-in');
+      return;
+    }
+
     const files = e.target.files;
     if (files && files[0]) {
       handleFile(files[0]);
@@ -53,6 +68,10 @@ const DropZone = ({ onFileSelect }) => {
   };
 
   const handleClick = () => {
+    if (!isSignedIn) {
+      navigate('/sign-in');
+      return;
+    }
     fileInputRef.current?.click();
   };
 

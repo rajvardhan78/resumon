@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ScannerOverlay = ({ isScanning }) => {
@@ -69,4 +70,3 @@ const ScannerOverlay = ({ isScanning }) => {
 };
 
 export default ScannerOverlay;
-
