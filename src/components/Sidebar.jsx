@@ -2,7 +2,7 @@ import { useState } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth, useUser, SignOutButton } from '@clerk/clerk-react';
 
 const Sidebar = () => {
   const [isHovered, setIsHovered] = useState(false);
@@ -144,7 +144,7 @@ const Sidebar = () => {
       <AnimatePresence>
         {isMobileOpen && (
           <motion.div
-            className="fixed inset-0 bg-primary/80 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-primary/80 backdrop-blur-sm z-40 lg:hidden rounded-r-2xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -155,7 +155,7 @@ const Sidebar = () => {
 
       {/* Desktop Sidebar (lg and up) */}
       <motion.aside
-        className="hidden lg:flex fixed left-0 top-0 h-screen bg-white/5 backdrop-blur-md border-r border-white/10 z-50 flex-col py-6"
+        className="hidden lg:flex fixed left-0 top-0 h-screen bg-white/5 backdrop-blur-md border-r border-white/10 z-50 flex-col py-6 rounded-r-2xl"
         variants={sidebarVariants}
         initial="collapsed"
         animate={isHovered ? 'expanded' : 'collapsed'}
@@ -208,32 +208,55 @@ const Sidebar = () => {
         </nav>
 
         {/* User Section */}
-        <div className="mt-auto mx-2">
+        <div className="mt-auto mx-2 space-y-1">
           {isSignedIn ? (
-            <Link to="/profile">
-              <motion.div
-                className={`flex items-center rounded-lg w-full ${
-                  location.pathname === '/profile'
-                    ? 'bg-success/20 text-success'
-                    : 'text-text/60 hover:bg-white/5 hover:text-text'
-                }`}
-                whileHover={{ x: 4 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-              >
-                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
-                  </div>
-                </div>
-                <motion.span
-                  variants={labelVariants}
-                  className="whitespace-nowrap overflow-hidden text-sm font-medium pr-4"
+            <>
+              <Link to="/profile">
+                <motion.div
+                  className={`flex items-center rounded-lg w-full ${
+                    location.pathname === '/profile'
+                      ? 'bg-success/20 text-success'
+                      : 'text-text/60 hover:bg-white/5 hover:text-text'
+                  }`}
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
                 >
-                  Profile
-                </motion.span>
-              </motion.div>
-            </Link>
+                  <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                      {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
+                    </div>
+                  </div>
+                  <motion.span
+                    variants={labelVariants}
+                    className="whitespace-nowrap overflow-hidden text-sm font-medium pr-4"
+                  >
+                    Profile
+                  </motion.span>
+                </motion.div>
+              </Link>
+              <SignOutButton redirectUrl="/sign-in">
+                <motion.button
+                  type="button"
+                  className="flex items-center rounded-lg w-full text-text/60 hover:bg-red-500/10 hover:text-red-400"
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </div>
+                  <motion.span
+                    variants={labelVariants}
+                    className="whitespace-nowrap overflow-hidden text-sm font-medium pr-4"
+                  >
+                    Logout
+                  </motion.span>
+                </motion.button>
+              </SignOutButton>
+            </>
           ) : (
             <Link to="/sign-in">
               <motion.div
@@ -261,7 +284,7 @@ const Sidebar = () => {
 
       {/* Mobile/Tablet Sidebar */}
       <motion.aside
-        className="lg:hidden fixed left-0 top-0 h-screen w-64 bg-white/5 backdrop-blur-md border-r border-white/10 z-50 flex flex-col py-6"
+        className="lg:hidden fixed left-0 top-0 h-screen w-64 bg-white/5 backdrop-blur-md border-r border-white/10 z-50 flex flex-col py-6 rounded-r-2xl"
         variants={mobileMenuVariants}
         initial="closed"
         animate={isMobileOpen ? 'open' : 'closed'}
@@ -302,28 +325,43 @@ const Sidebar = () => {
         </nav>
 
         {/* User Section */}
-        <div className="px-3 mt-auto">
+        <div className="px-3 mt-auto space-y-1">
           {isSignedIn ? (
-            <Link
-              to="/profile"
-              onClick={() => setIsMobileOpen(false)}
-            >
-              <motion.div
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg w-full ${
-                  location.pathname === '/profile'
-                    ? 'bg-success/20 text-success'
-                    : 'text-text/60 hover:bg-white/5 hover:text-text'
-                }`}
-                whileTap={{ scale: 0.95 }}
+            <>
+              <Link
+                to="/profile"
+                onClick={() => setIsMobileOpen(false)}
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">
-                  {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
-                </div>
-                <span className="whitespace-nowrap text-sm font-medium">
-                  Profile
-                </span>
-              </motion.div>
-            </Link>
+                <motion.div
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg w-full ${
+                    location.pathname === '/profile'
+                      ? 'bg-success/20 text-success'
+                      : 'text-text/60 hover:bg-white/5 hover:text-text'
+                  }`}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">
+                    {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
+                  </div>
+                  <span className="whitespace-nowrap text-sm font-medium">
+                    Profile
+                  </span>
+                </motion.div>
+              </Link>
+              <SignOutButton redirectUrl="/sign-in">
+                <motion.button
+                  type="button"
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg w-full text-text/60 hover:bg-red-500/10 hover:text-red-400"
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsMobileOpen(false)}
+                >
+                  <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="whitespace-nowrap text-sm font-medium">Logout</span>
+                </motion.button>
+              </SignOutButton>
+            </>
           ) : (
             <Link
               to="/sign-in"
