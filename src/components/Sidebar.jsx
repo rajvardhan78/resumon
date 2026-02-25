@@ -190,13 +190,14 @@ const Sidebar = () => {
           {menuItems.map((item, index) => (
             <motion.button
               key={index}
-              className={`flex items-center rounded-lg transition-all duration-200 mx-2 ${
+              className={`flex items-center rounded-lg mx-2 ${
                 item.active
                   ? 'bg-success/20 text-success'
                   : 'text-text/60 hover:bg-white/5 hover:text-text'
               }`}
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">{item.icon}</div>
               <motion.span
@@ -210,11 +211,12 @@ const Sidebar = () => {
         </nav>
 
         {/* User Section */}
-        <div className="mt-auto">
+        <div className="mt-auto mx-2">
           <motion.button
-            className="flex items-center rounded-lg text-text/60 hover:bg-white/5 hover:text-text transition-all duration-200 w-full mx-2"
+            className="flex items-center rounded-lg text-text/60 hover:bg-white/5 hover:text-text w-full"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.15 }}
           >
             <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full" />
