@@ -45,10 +45,10 @@ function Home() {
       <ScannerOverlay isScanning={isScanning} />
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-20 lg:py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-12 lg:py-10">
         {/* Header Section */}
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-10"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -142,7 +142,7 @@ function Home() {
 
         {/* Features Grid */}
         <motion.div
-          className="mt-16 grid md:grid-cols-2 gap-6"
+          className="mt-12 grid md:grid-cols-2 gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
