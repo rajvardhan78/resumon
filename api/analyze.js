@@ -1,12 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { evaluateResume } from './evaluate.js';
 import { insertScan } from './db.js';
+
+// Disable the web worker — Vercel serverless has no worker thread support
+GlobalWorkerOptions.workerSrc = '';
 
 // Extract all text from a PDF buffer using pdfjs-dist (serverless-safe)
 async function extractTextFromPDF(buffer) {
   const uint8Array = new Uint8Array(buffer);
-  const loadingTask = getDocument({ data: uint8Array });
+  const loadingTask = getDocument({ data: uint8Array, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true });
   const pdf = await loadingTask.promise;
   let fullText = '';
   for (let i = 1; i <= pdf.numPages; i++) {
