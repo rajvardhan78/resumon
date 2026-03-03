@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Results from './pages/Results';
 import Analytics from './pages/Analytics';
+import History from './pages/History';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import './App.css';
@@ -43,6 +44,14 @@ function App() {
               }
             />
             <Route path="/analytics" element={<Analytics />} />
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <History />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
       </div>

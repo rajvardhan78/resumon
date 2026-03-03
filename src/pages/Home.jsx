@@ -40,7 +40,6 @@ function Home() {
       formData.append('resume', selectedFile);
       if (user?.id) formData.append('userId', user.id);
       formData.append('fileName', selectedFile.name);
-      console.log('Scanning with userId:', user?.id, 'fileName:', selectedFile.name);
 
       const response = await fetch('/api/analyze', {
         method: 'POST',

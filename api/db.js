@@ -67,7 +67,6 @@ export async function insertScan({ userId, fileName, scannedAt, analysis }) {
   };
 
   const result = await db.collection('scans').insertOne(doc);
-  console.log(`DB ✅ insertScan — userId:${userId} id:${result.insertedId} overall:${doc.overall}`);
   return result;
 }
 
@@ -91,11 +90,9 @@ export async function getUserStats(userId) {
   ]).toArray();
 
   if (!agg) {
-    console.log(`DB getUserStats — userId:${userId} — no documents found`);
     return { totalScans: 0, averageScore: 0, bestScore: 0, lastScannedAt: null };
   }
 
-  console.log(`DB getUserStats — userId:${userId} —`, JSON.stringify(agg));
 
   return {
     totalScans:    agg.totalScans,

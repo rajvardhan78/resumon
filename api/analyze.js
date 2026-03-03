@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     if (apiKey) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const prompt = `You are an expert resume analyzer. Analyze the following resume text and return a JSON object with scores and feedback.
 
