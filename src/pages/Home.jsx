@@ -10,6 +10,7 @@ import ScannerOverlay from '../components/ScannerOverlay';
 function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState(null);
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
 
@@ -18,10 +19,11 @@ function Home() {
       navigate('/sign-in');
       return;
     }
+    setScanError(null);
     setSelectedFile(file);
   };
 
-  const handleScan = () => {
+  const handleScan = async () => {
     if (!isSignedIn) {
       navigate('/sign-in');
       return;
@@ -30,13 +32,30 @@ function Home() {
     if (!selectedFile) return;
 
     setIsScanning(true);
+    setScanError(null);
 
-    // Simulate scanning process
-    setTimeout(() => {
+    try {
+      const formData = new FormData();
+      formData.append('resume', selectedFile);
+
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Analysis failed. Please try again.');
+      }
+
       setIsScanning(false);
-      console.log('Scan complete!', selectedFile);
-      // TODO: Send file to backend for analysis
-    }, 4000);
+      navigate('/results', { state: { analysis: data.analysis } });
+    } catch (err) {
+      setIsScanning(false);
+      console.error('Scan error:', err);
+      setScanError(err.message || 'Something went wrong. Please try again.');
+    }
   };
 
   return (
@@ -128,7 +147,7 @@ function Home() {
 
         {/* Scan Button */}
         <motion.div
-          className="flex justify-center"
+          className="flex flex-col items-center gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
@@ -138,6 +157,27 @@ function Home() {
             onScan={handleScan}
             isScanning={isScanning}
           />
+
+          {/* Error Banner */}
+          {scanError && (
+            <motion.div
+              className="w-full max-w-xl p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <span className="text-red-400 text-lg mt-0.5">⚠️</span>
+              <div>
+                <p className="text-red-400 font-medium text-sm">Analysis Failed</p>
+                <p className="text-text/70 text-sm mt-1">{scanError}</p>
+              </div>
+              <button
+                onClick={() => setScanError(null)}
+                className="ml-auto text-text/40 hover:text-text/70 text-lg leading-none"
+              >
+                ×
+              </button>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Features Grid */}
