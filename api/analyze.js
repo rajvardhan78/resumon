@@ -1,10 +1,21 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { createRequire } from 'module';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { evaluateResume } from './evaluate.js';
 import { insertScan } from './db.js';
 
-const require = createRequire(import.meta.url);
-const { PDFParse } = require('pdf-parse');
+// Extract all text from a PDF buffer using pdfjs-dist (serverless-safe)
+async function extractTextFromPDF(buffer) {
+  const uint8Array = new Uint8Array(buffer);
+  const loadingTask = getDocument({ data: uint8Array });
+  const pdf = await loadingTask.promise;
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    fullText += content.items.map(item => item.str).join(' ') + '\n';
+  }
+  return fullText;
+}
 
 
 // Helper: read raw body from the request stream
@@ -117,9 +128,7 @@ export default async function handler(req, res) {
 
     // Extract text from PDF
     const pdfBuffer = parts[0].data;
-    const parser = new PDFParse({ data: pdfBuffer });
-    const pdfData = await parser.getText();
-    const resumeText = pdfData.text.trim();
+    const resumeText = (await extractTextFromPDF(pdfBuffer)).trim();
 
     if (!resumeText || resumeText.length < 50) {
       return res.status(400).json({ error: 'Could not extract readable text from the PDF.' });
