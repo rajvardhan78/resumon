@@ -1,6 +1,6 @@
-/* global Buffer, process */
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createRequire } from 'module';
+import { evaluateResume } from './evaluate.js';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -88,16 +88,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Could not extract readable text from the PDF.' });
     }
 
-    // Call Gemini API
+    // ── Try Gemini first ────────────────────────────────────────────────────
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'Gemini API key is not configured.' });
-    }
+    if (apiKey) {
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
-
-    const prompt = `You are an expert resume analyzer. Analyze the following resume text and return a JSON object with scores and feedback.
+        const prompt = `You are an expert resume analyzer. Analyze the following resume text and return a JSON object with scores and feedback.
 
 Return ONLY a valid JSON object in this exact format (no markdown, no extra text):
 {
@@ -140,36 +138,25 @@ Resume text:
 ${resumeText}
 ---`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        const cleaned = responseText.replace(/```json\n?|\n?```/g, '').trim();
+        const analysis = JSON.parse(cleaned);
+        analysis._source = 'gemini';
+        return res.status(200).json({ success: true, analysis });
 
-    // Parse the JSON response from Gemini
-    let analysis;
-    try {
-      // Strip potential markdown code fences if Gemini wraps it
-      const cleaned = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      analysis = JSON.parse(cleaned);
-    } catch {
-      return res.status(500).json({
-        error: 'Failed to parse AI response.',
-        raw: responseText,
-      });
+      } catch (geminiErr) {
+        // Log the Gemini failure but don't surface it — fall through to local engine
+        console.warn('Gemini unavailable, falling back to local engine:', geminiErr.message);
+      }
     }
 
-    return res.status(200).json({ success: true, analysis });
+    // ── Fallback: local evaluation engine ────────────────────────────────────
+    const analysis = evaluateResume(resumeText);
+    return res.status(200).json({ success: true, analysis, _usedFallback: true });
+
   } catch (err) {
     console.error('Error in /api/analyze:', err);
-
-    // Handle Gemini quota / rate-limit errors specifically
-    if (err.status === 429) {
-      const retryDelay = err.errorDetails?.find(
-        (d) => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
-      )?.retryDelay ?? '60s';
-      return res.status(429).json({
-        error: `Gemini API quota exceeded. Please wait ${retryDelay} and try again. If this keeps happening, the free-tier daily limit has been reached — try again tomorrow or upgrade your Gemini API plan.`,
-        retryAfter: retryDelay,
-      });
-    }
 
     return res.status(500).json({ error: err.message || 'Internal server error' });
   }

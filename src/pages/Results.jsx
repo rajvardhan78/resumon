@@ -63,7 +63,8 @@ function Results() {
     return null;
   }
 
-  const { overallScore, scores, summary, topStrengths, improvements } = analysis;
+  const { overallScore, scores, summary, topStrengths, improvements, _source } = analysis;
+  const usedFallback = _source === 'local';
 
   const cards = [
     {
@@ -104,6 +105,16 @@ function Results() {
           Resume Analysis
         </h1>
         <p className="text-text/60">Here's what our AI found</p>
+        {usedFallback && (
+          <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-xs font-medium">
+            <span>⚙️</span> Analyzed with local engine — Gemini quota exceeded
+          </div>
+        )}
+        {!usedFallback && (
+          <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-success/10 border border-success/25 text-success text-xs font-medium">
+            <span>✨</span> Powered by Gemini AI
+          </div>
+        )}
       </motion.div>
 
       {/* Overall Score */}
