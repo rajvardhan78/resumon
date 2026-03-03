@@ -1,85 +1,165 @@
-# 📄 AI Resume Analyzer & Evaluator
+# Resumon — AI Resume Analyzer
 
-A "sober-aesthetic" full-stack application designed to evaluate resumes using LLM-based heuristics and NLP.
+> Upload your resume. Get instant AI-powered feedback on keywords, experience, technical depth and presentation quality. Track every scan in your history and watch your scores improve over time.
 
----
-
-## 🏗️ Technical Stack
-
-| Layer            | Technology                   | Role                                           |
-|:-----------------|:-----------------------------|:-----------------------------------------------|
-| **Frontend** | React 19 + Vite              | Core UI Framework                              |
-| **Styling** | Tailwind CSS                 | Minimalist design & Utility-first styling      |
-| **Animations** | Framer Motion                | Sidebar transitions & "Scanning" micro-effects |
-| **Backend** | Node.js + Express            | File handling & API Orchestration              |
-| **Database** | PostgreSQL (Supabase/Prisma) | Persistence for Scores & User History          |
-| **Auth** | Clerk                        | Google & Email OAuth                           |
-| **AI Engine** | OpenAI API (GPT-4o)          | Extraction, Scoring, and Feedback              |
+![Tech Stack](https://img.shields.io/badge/React_19-Vite-61DAFB?style=flat&logo=react)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat&logo=mongodb)
+![Vercel](https://img.shields.io/badge/Deployed-Vercel-000000?style=flat&logo=vercel)
+![Clerk](https://img.shields.io/badge/Auth-Clerk-6C47FF?style=flat&logo=clerk)
 
 ---
 
-## 🧠 The Evaluation Algorithm
+## ✨ Features
 
-To manage the "Evaluation," we utilize a **Hybrid Scoring Model**. Instead of simple keyword matching, we process the text through a multi-dimensional prompt.
-
-### 1. Data Extraction
-- **Tool:** `pdf-parse` (Node)
-- **Process:** Convert binary PDF data into a clean UTF-8 string, stripping non-standard characters.
-
-### 2. The Scoring Logic (LLM Heuristics)
-The "Algorithm" is defined by a JSON-enforced System Prompt. You will categorize the resume into 4 pillars:
-
-* **Keywords:** Matches against industry-standard tech stacks (hard skills).
-* **Experience Level:** Analyzes "Impact" over "Tasks" (e.g., "Led a team" vs "Was a member").
-* **Knowledge Depth:** Evaluates complexity of projects (e.g., "Built a CRUD app" vs "Optimized DB indexing").
-* **Creativity:** Measures lexical diversity and unique project framing.
-
-### 3. Algorithm Flow
-1. **User Uploads** -> `POST /api/scan`
-2. **Backend** -> Extracts text and sends to LLM with a schema-defined prompt.
-3. **LLM Response** -> Returns structured JSON.
-4. **Validation** -> Backend ensures scores are within 0-100 range.
-5. **Persistence** -> Save results to DB linked to `user_id`.
+- **AI Resume Scoring** — Upload a PDF and get scored across 4 dimensions: Keywords, Experience, Knowledge Depth and Creativity
+- **Gemini AI + Local Fallback** — Powered by Google Gemini. When quota is exceeded, a fully in-house evaluation engine kicks in automatically — zero downtime
+- **Scan History** — Every scan is saved to MongoDB. View all past scans as clean horizontal cards, latest on top
+- **Analytics Page** — Visual breakdown of your most recent scan with animated score bars, dimension cards and highlight chips
+- **Profile Stats** — Real-time Total Scans, Average Score and Best Score pulled from the database
+- **Auth** — Google & email sign-in via Clerk
+- **Fully Serverless** — Deployed on Vercel with API routes as serverless functions
 
 ---
 
-## 🎨 Design & UX Specifications
+## 🏗️ Tech Stack
 
-### Aesthetic: "Sober & Engaging"
-- **Primary Palette:** `#0A0A0A` (Background), `#F5F5F7` (Text), `#22C55E` (Success Accents).
-- **Typography:** Inter (UI) and JetBrains Mono (Evaluation details).
-
-### Component: The Interactive Sidebar
-- **State 1 (Idle):** 64px width. Icons only. Blur background (`backdrop-blur-md`).
-- **State 2 (Hover):** 240px width. Smooth spring transition. Labels appear with a slight fade-in.
-
-### Component: The Main Section
-- **Instructional Text:** Centered, low-opacity (0.6) text explaining the process.
-- **Dropzone:** An `input[type="file"]` wrapped in a Framer Motion `div`.
-- **The "Scan" Button:** High-contrast button. Upon click, trigger a "Linear Scan" CSS animation that moves a light-bar down the screen to simulate a physical scanner.
+| Layer | Technology | Role |
+|:---|:---|:---|
+| **Frontend** | React 19 + Vite | UI framework |
+| **Styling** | Tailwind CSS v4 | Utility-first styling |
+| **Animations** | Framer Motion | Sidebar, scan overlay, card transitions |
+| **Auth** | Clerk | Google & email OAuth |
+| **AI Engine** | Google Gemini (`gemini-2.0-flash-lite`) | Resume analysis & scoring |
+| **Fallback Engine** | Custom NLP algorithm (`api/evaluate.js`) | In-house scoring when Gemini quota is exceeded |
+| **Database** | MongoDB Atlas | Scan history & user stats |
+| **Backend** | Vercel Serverless Functions (`/api`) | PDF parsing, AI calls, DB writes |
+| **PDF Parsing** | `pdf-parse` | Extract text from uploaded resume PDFs |
+| **Deployment** | Vercel | Frontend + API, zero config |
 
 ---
 
-## 📂 Database Schema (Prisma)
+## 🧠 How the Scoring Works
 
-```prisma
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  scans     Scan[]
-  createdAt DateTime @default(now())
-}
+Resumes are scored across **4 dimensions** (0–100 each):
 
-model Scan {
-  id              String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  overallScore    Int
-  keywordScore    Int
-  experienceScore Int
-  knowledgeScore  Int
-  creativityScore Int
-  feedback        String[] // Array of improvement strings
-  rawContent      String?  // Optional: store text for future comparison
-  createdAt       DateTime @default(now())
-}
+| Dimension | What it measures |
+|:---|:---|
+| 🏷️ **Keywords** | Industry-standard tech stacks, hard skills, tools, certifications — weighted across 9 categories (languages, frontend, backend, databases, DevOps, ML/AI, mobile, tools, soft skills) |
+| ⚡ **Experience** | Depth of work history — employment date ranges, job titles, action verbs, quantified achievements (e.g. "reduced load time by 40%") |
+| 💡 **Knowledge Depth** | Technical sophistication — project complexity, certifications, GitHub links, education, word count, stack breadth |
+| ⭐ **Creativity** | Standout presentation — metrics, bullet structure, side projects, hackathons, awards, lexical diversity |
+
+**Overall score** = weighted average (Experience 30% · Keywords 28% · Knowledge 25% · Creativity 17%) + section completeness bonus.
+
+### Gemini AI Path
+1. PDF uploaded → text extracted via `pdf-parse`
+2. Text sent to Gemini with a strict JSON-schema prompt
+3. Response parsed → scores + feedback returned to frontend
+
+### Local Fallback Path (when Gemini is unavailable)
+1. Same PDF text is passed to `api/evaluate.js`
+2. 200+ regex patterns + curated keyword banks score the resume purely in-house
+3. Identical JSON shape returned → UI renders exactly the same
+
+---
+
+## 🗂️ Project Structure
+
+```
+resumon/
+├── api/                      # Vercel serverless functions
+│   ├── analyze.js            # POST /api/analyze — PDF parse + Gemini/fallback
+│   ├── evaluate.js           # In-house scoring engine (Gemini fallback)
+│   ├── db.js                 # MongoDB Atlas client + helpers
+│   ├── stats.js              # GET /api/stats — aggregated user stats
+│   └── history.js            # GET /api/history — recent scans list
+├── src/
+│   ├── components/
+│   │   ├── Sidebar.jsx       # Collapsible nav (64px → 240px on hover)
+│   │   ├── DropZone.jsx      # PDF drag & drop upload
+│   │   ├── ScanButton.jsx    # Animated scan trigger
+│   │   └── ScannerOverlay.jsx# Linear light-bar scan animation
+│   └── pages/
+│       ├── Home.jsx          # Upload + scan flow
+│       ├── Results.jsx       # Full analysis results
+│       ├── Analytics.jsx     # Latest scan visual breakdown
+│       ├── History.jsx       # All scans — horizontal cards
+│       └── Profile.jsx       # User info + live stats from DB
+├── public/
+│   └── logo.svg              # Custom R favicon (green gradient)
+├── index.html                # SEO meta + OG tags
+└── vercel.json               # Build + rewrite config
+```
+
+---
+
+## 🚀 Local Development
+
+### Prerequisites
+- Node.js 18+
+- A [MongoDB Atlas](https://cloud.mongodb.com) free cluster
+- A [Clerk](https://clerk.com) account
+- A [Google Gemini](https://aistudio.google.com) API key
+
+### Setup
+
+```bash
+# 1. Clone
+git clone https://github.com/rajvardhan78/resumon.git
+cd resumon
+
+# 2. Install dependencies
+npm install
+
+# 3. Copy env template and fill in your values
+cp .env.example .env.local
+```
+
+Fill in `.env.local`:
+
+```env
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+GEMINI_API_KEY=AIza...
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster0.xxxxx.mongodb.net/resumon?retryWrites=true&w=majority
+```
+
+```bash
+# 4. Run with Vercel dev (serves both frontend + API functions)
+vercel dev
+```
+
+App runs at `http://localhost:3000`
+
+---
+
+## ☁️ Deployment (Vercel)
+
+1. Push to GitHub
+2. Import repo at [vercel.com/new](https://vercel.com/new)
+3. Add environment variables in Vercel Dashboard → Settings → Environment Variables:
+   - `MONGODB_URI`
+   - `GEMINI_API_KEY`
+   - `VITE_CLERK_PUBLISHABLE_KEY`
+   - `CLERK_SECRET_KEY`
+4. Deploy — Vercel auto-detects Vite, API routes become serverless functions automatically
+5. Add your Vercel domain to **Clerk Dashboard → Domains**
+6. Add `0.0.0.0/0` to **MongoDB Atlas → Network Access** (Vercel uses dynamic IPs)
+
+---
+
+## 🎨 Design System
+
+| Token | Value | Usage |
+|:---|:---|:---|
+| `--color-primary` | `#0a0a0a` | Page background |
+| `--color-text` | `#f5f5f7` | Body text |
+| `--color-success` | `#22c55e` | Accents, scores, CTAs |
+| Font UI | Inter | All UI text |
+| Font Mono | JetBrains Mono | Code / score values |
+
+---
+
+## 📄 License
+
+MIT
