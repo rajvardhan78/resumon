@@ -1,7 +1,7 @@
 import { useState } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import DropZone from '../components/DropZone';
 import ScanButton from '../components/ScanButton';
@@ -12,6 +12,7 @@ function Home() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanError, setScanError] = useState(null);
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
   const navigate = useNavigate();
 
   const handleFileSelect = (file) => {
@@ -37,6 +38,9 @@ function Home() {
     try {
       const formData = new FormData();
       formData.append('resume', selectedFile);
+      if (user?.id) formData.append('userId', user.id);
+      formData.append('fileName', selectedFile.name);
+      console.log('Scanning with userId:', user?.id, 'fileName:', selectedFile.name);
 
       const response = await fetch('/api/analyze', {
         method: 'POST',

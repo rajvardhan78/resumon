@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createRequire } from 'module';
 import { evaluateResume } from './evaluate.js';
+import { insertScan } from './db.js';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -48,6 +49,38 @@ function parseMultipart(buffer, boundary) {
   return parts;
 }
 
+// Helper: extract plain text fields (non-file parts) from multipart
+function parseTextFields(buffer, boundary) {
+  const boundaryBuffer = Buffer.from('--' + boundary);
+  const fields = {};
+  let start = 0;
+
+  while (start < buffer.length) {
+    const boundaryIndex = buffer.indexOf(boundaryBuffer, start);
+    if (boundaryIndex === -1) break;
+
+    const headerStart = boundaryIndex + boundaryBuffer.length + 2;
+    const headerEnd = buffer.indexOf(Buffer.from('\r\n\r\n'), headerStart);
+    if (headerEnd === -1) break;
+
+    const headers = buffer.slice(headerStart, headerEnd).toString();
+    const dataStart = headerEnd + 4;
+    const nextBoundary = buffer.indexOf(boundaryBuffer, dataStart);
+    const dataEnd = nextBoundary === -1 ? buffer.length : nextBoundary - 2;
+
+    if (!headers.includes('filename')) {
+      const nameMatch = headers.match(/name="([^"]+)"/);
+      if (nameMatch) {
+        fields[nameMatch[1]] = buffer.slice(dataStart, dataEnd).toString().trim();
+      }
+    }
+
+    start = nextBoundary === -1 ? buffer.length : nextBoundary;
+  }
+
+  return fields;
+}
+
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -73,6 +106,10 @@ export default async function handler(req, res) {
     const boundary = boundaryMatch[1];
     const rawBody = await getRawBody(req);
     const parts = parseMultipart(rawBody, boundary);
+    const fields = parseTextFields(rawBody, boundary);
+
+    const userId   = fields.userId   || null;
+    const fileName = fields.fileName || 'resume.pdf';
 
     if (parts.length === 0) {
       return res.status(400).json({ error: 'No file found in the request.' });
@@ -143,6 +180,15 @@ ${resumeText}
         const cleaned = responseText.replace(/```json\n?|\n?```/g, '').trim();
         const analysis = JSON.parse(cleaned);
         analysis._source = 'gemini';
+
+        if (userId) {
+          try {
+            await insertScan({ userId, fileName, scannedAt: new Date().toISOString(), analysis });
+          } catch (dbErr) {
+            console.error('DB insert failed (Gemini):', dbErr.message);
+          }
+        }
+
         return res.status(200).json({ success: true, analysis });
 
       } catch (geminiErr) {
@@ -153,6 +199,15 @@ ${resumeText}
 
     // ── Fallback: local evaluation engine ────────────────────────────────────
     const analysis = evaluateResume(resumeText);
+
+    if (userId) {
+      try {
+        await insertScan({ userId, fileName, scannedAt: new Date().toISOString(), analysis });
+      } catch (dbErr) {
+        console.error('DB insert failed (local):', dbErr.message);
+      }
+    }
+
     return res.status(200).json({ success: true, analysis, _usedFallback: true });
 
   } catch (err) {
