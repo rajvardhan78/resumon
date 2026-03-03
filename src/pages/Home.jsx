@@ -50,6 +50,12 @@ function Home() {
       }
 
       setIsScanning(false);
+      // Persist latest scan so Analytics page can display it
+      localStorage.setItem('resumon_latest_scan', JSON.stringify({
+        analysis: data.analysis,
+        fileName: selectedFile.name,
+        scannedAt: new Date().toISOString(),
+      }));
       navigate('/results', { state: { analysis: data.analysis } });
     } catch (err) {
       setIsScanning(false);

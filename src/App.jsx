@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Results from './pages/Results';
+import Analytics from './pages/Analytics';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import './App.css';
@@ -41,8 +42,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/history" element={<div className="p-20 text-center"><h1 className="text-3xl">History Page - Coming Soon</h1></div>} />
-            <Route path="/analytics" element={<div className="p-20 text-center"><h1 className="text-3xl">Analytics Page - Coming Soon</h1></div>} />
+            <Route path="/analytics" element={<Analytics />} />
           </Routes>
         </main>
       </div>
