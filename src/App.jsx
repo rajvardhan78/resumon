@@ -16,8 +16,8 @@ function App() {
       <div className="min-h-screen bg-primary text-text">
         {/* Sidebar - appears on all pages except sign-in/sign-up */}
         <Routes>
-          <Route path="/sign-in" element={null} />
-          <Route path="/sign-up" element={null} />
+          <Route path="/sign-in/*" element={null} />
+          <Route path="/sign-up/*" element={null} />
           <Route path="*" element={<Sidebar />} />
         </Routes>
 
@@ -25,8 +25,8 @@ function App() {
         <main className="lg:ml-16 transition-all duration-300">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/sign-in" element={<SignInPage />} />
-            <Route path="/sign-up" element={<SignUpPage />} />
+            <Route path="/sign-in/*" element={<SignInPage />} />
+            <Route path="/sign-up/*" element={<SignUpPage />} />
             <Route
               path="/profile"
               element={
