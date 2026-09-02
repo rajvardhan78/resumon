@@ -60,8 +60,8 @@ export default function AuthProvider({ children }) {
   }, []);
 
   /** Registration signs the new account straight in, so sign-up is one round trip. */
-  const signUp = useCallback(async ({ fullName, email, password }) => {
-    const auth = await api.register({ fullName, email, password });
+  const signUp = useCallback(async ({ fullName, email, password, otp }) => {
+    const auth = await api.register({ fullName, email, password, otp });
 
     setTokens(auth.tokens);
     setUser(auth.user);

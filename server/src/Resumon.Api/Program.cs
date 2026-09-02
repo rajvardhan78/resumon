@@ -26,17 +26,11 @@ if (Environment.GetEnvironmentVariable("PORT") is { Length: > 0 } port)
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
-builder.Services.AddOptions<MongoOptions>()
-    .Bind(builder.Configuration.GetSection(MongoOptions.SectionName))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-builder.Services.AddOptions<JwtOptions>()
-    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection(GeminiOptions.SectionName));
+builder.Services.AddOptions<MongoOptions>().BindConfiguration(MongoOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<GeminiOptions>().BindConfiguration(GeminiOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<SmtpOptions>().BindConfiguration(SmtpOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<TurnstileOptions>().BindConfiguration(TurnstileOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(UploadOptions.SectionName));
 builder.Services.Configure<ClientOptions>(builder.Configuration.GetSection(ClientOptions.SectionName));
 
@@ -111,9 +105,13 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddScoped<ITokenService, JwtTokenService>();
-builder.Services.AddScoped<IScanRepository, ScanRepository>();
-builder.Services.AddScoped<IResumeAnalysisService, ResumeAnalysisService>();
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
+builder.Services.AddSingleton<IResumeAnalysisService, ResumeAnalysisService>();
+builder.Services.AddSingleton<IScanRepository, ScanRepository>();
+builder.Services.AddSingleton<IOtpService, OtpService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
+
+builder.Services.AddHttpClient<ITurnstileService, TurnstileService>();
 builder.Services.AddSingleton<IPdfTextExtractor, PdfPigTextExtractor>();
 
 // Stateless and allocation-free per call, so one instance serves every request.

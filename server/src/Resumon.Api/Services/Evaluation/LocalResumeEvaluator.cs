@@ -19,11 +19,12 @@ public interface IResumeEvaluator
 /// </remarks>
 public sealed class LocalResumeEvaluator : IResumeEvaluator
 {
-    // Overall weighting: recent, measurable experience matters most.
-    private const double KeywordWeight = 0.28;
+    // Overall weighting — tuned to approximate Gemini's emphasis: experience and technical depth
+    // count heavily, while keyword density carries less weight than the raw heuristic suggests.
+    private const double KeywordWeight = 0.25;
     private const double ExperienceWeight = 0.30;
     private const double KnowledgeWeight = 0.25;
-    private const double CreativityWeight = 0.17;
+    private const double CreativityWeight = 0.20;
 
     public ResumeAnalysis Evaluate(string resumeText)
     {
@@ -43,7 +44,8 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
             + (scores.Creativity.Score * CreativityWeight);
 
         var (sectionBonus, sectionsFound) = ScoreSectionCompleteness(resumeText);
-        var overall = TextHeuristics.Clamp(weighted + sectionBonus);
+        // Post-scoring normalization pulls the raw weighted score toward Gemini's range.
+        var overall = TextHeuristics.NormalizeScore(weighted + sectionBonus);
         var (strengths, improvements) = DeriveStrengthsAndImprovements(scores, sectionsFound);
 
         return new ResumeAnalysis
@@ -72,15 +74,18 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
         foreach (var category in ResumeKeywordBank.Categories)
         {
             var matched = TextHeuristics.FindMatches(normalized, category.Keywords);
-            weightedMatched += matched.Count * category.Weight;
-            weightedTotal += Math.Min(category.Keywords.Length, 5) * category.Weight;
+            // Cap at 4 per category (down from 5): Gemini doesn't reward keyword-stuffing.
+            weightedMatched += Math.Min(matched.Count, 4) * category.Weight;
+            weightedTotal += Math.Min(category.Keywords.Length, 4) * category.Weight;
             perCategory.Add((category.Name, matched));
         }
 
         var coveredCategories = perCategory.Count(c => c.Matched.Count > 0);
+        // Density: 80 points (up from 70), breadth: 20 points (down from 30).
+        // Gemini cares more about keyword relevance than category breadth.
         var score = TextHeuristics.Clamp(
-            (weightedMatched / weightedTotal * 70)
-            + ((double)coveredCategories / ResumeKeywordBank.Categories.Length * 30));
+            (weightedMatched / weightedTotal * 80)
+            + ((double)coveredCategories / ResumeKeywordBank.Categories.Length * 20));
 
         var unique = perCategory.SelectMany(c => c.Matched).Distinct(StringComparer.Ordinal).ToList();
         var highlights = unique.Take(6).Select(k => $"\"{k}\" detected").ToList();
@@ -117,36 +122,37 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
         var yearsMatch = TextHeuristics.YearsOfExperience().Match(text);
         if (yearsMatch.Success)
         {
-            // An absurdly long digit run would overflow; it clamps to the cap either way.
+            // Tighter cap: Gemini doesn't inflate scores just because years are stated.
             var years = long.TryParse(yearsMatch.Groups[1].Value, out var parsed) ? parsed : 20;
-            score += TextHeuristics.Clamp(years * 4.0, 0, 20);
+            score += TextHeuristics.Clamp(years * 3.0, 0, 15);
             highlights.Add($"{years}+ years of experience stated");
         }
 
         var dateRanges = TextHeuristics.FindDateRanges(text);
         if (dateRanges.Count > 0)
         {
-            score += TextHeuristics.Clamp(dateRanges.Count * 7, 0, 20);
+            score += TextHeuristics.Clamp(dateRanges.Count * 5, 0, 18);
             highlights.Add($"{dateRanges.Count} employment period(s) with dates");
         }
 
         var titles = TextHeuristics.FindMatches(normalized, ResumeKeywordBank.JobTitles);
         if (titles.Count > 0)
         {
-            score += TextHeuristics.Clamp(titles.Count * 5, 0, 15);
+            score += TextHeuristics.Clamp(titles.Count * 4, 0, 12);
             highlights.Add($"Roles: {string.Join(", ", titles.Take(3))}");
         }
 
         var verbs = TextHeuristics.FindMatches(normalized, ResumeKeywordBank.ActionVerbs);
         if (verbs.Count > 0)
         {
-            score += TextHeuristics.Clamp(verbs.Count * 2, 0, 20);
+            score += TextHeuristics.Clamp(verbs.Count * 1.5, 0, 15);
             highlights.Add($"{verbs.Count} strong action verbs used");
         }
 
         var quantified = TextHeuristics.FindQuantifiedAchievements(text);
         if (quantified.Count > 0)
         {
+            // Quantified achievements remain the highest-value signal.
             score += TextHeuristics.Clamp(quantified.Count * 5, 0, 25);
             highlights.Add($"{quantified.Count} quantified achievement(s) with numbers");
         }
@@ -174,19 +180,20 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
         var score = 0;
         var highlights = new List<string>();
 
+        // Word count is a weaker signal — Gemini scores content quality, not length.
         var words = TextHeuristics.CountWords(text);
         switch (words)
         {
             case > 700:
-                score += 15;
+                score += 12;
                 highlights.Add($"Rich detail ({words} words)");
                 break;
             case > 400:
-                score += 9;
+                score += 7;
                 highlights.Add($"Adequate length ({words} words)");
                 break;
             case > 200:
-                score += 4;
+                score += 3;
                 break;
             default:
                 highlights.Add($"Resume is very short ({words} words) — expand it");
@@ -196,14 +203,14 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
         var certifications = TextHeuristics.FindMatches(normalized, ResumeKeywordBank.Certifications);
         if (certifications.Count > 0)
         {
-            score += TextHeuristics.Clamp(certifications.Count * 8, 0, 20);
+            score += TextHeuristics.Clamp(certifications.Count * 6, 0, 15);
             highlights.Add($"{certifications.Count} certification(s) detected");
         }
 
         var projectMentions = TextHeuristics.ProjectMention().Count(text);
         if (projectMentions > 0)
         {
-            score += TextHeuristics.Clamp(projectMentions * 4, 0, 20);
+            score += TextHeuristics.Clamp(projectMentions * 4, 0, 18);
             highlights.Add($"{projectMentions} project mention(s)");
         }
 
@@ -219,13 +226,13 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
 
         if (TextHeuristics.EducationSignal().IsMatch(text))
         {
-            score += 10;
+            score += 8;
             highlights.Add("Educational qualification detected");
         }
 
         if (TextHeuristics.GitHubProfile().IsMatch(text))
         {
-            score += 8;
+            score += 7;
             highlights.Add("GitHub profile linked");
         }
 
@@ -277,34 +284,34 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
         switch (bullets)
         {
             case > 10:
-                score += 15;
+                score += 12;
                 highlights.Add($"Well-structured ({bullets} bullet points)");
                 break;
             case > 4:
-                score += 9;
+                score += 7;
                 highlights.Add($"{bullets} bullet points found");
                 break;
             case > 0:
-                score += 4;
+                score += 3;
                 break;
         }
 
         var sideSignals = TextHeuristics.FindMatches(normalized, ResumeKeywordBank.SideProjectSignals);
         if (sideSignals.Count > 0)
         {
-            score += TextHeuristics.Clamp(sideSignals.Count * 7, 0, 20);
+            score += TextHeuristics.Clamp(sideSignals.Count * 6, 0, 18);
             highlights.Add($"{sideSignals.Count} side project / open-source signal(s)");
         }
 
         if (TextHeuristics.AwardSignal().IsMatch(text))
         {
-            score += 15;
+            score += 12;
             highlights.Add("Awards or recognition mentioned");
         }
 
         if (TextHeuristics.CommunitySignal().IsMatch(text))
         {
-            score += 10;
+            score += 8;
             highlights.Add("Community involvement or volunteering noted");
         }
 
@@ -317,14 +324,15 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
             ? (double)words.Distinct(StringComparer.Ordinal).Count() / words.Count
             : 0;
 
-        if (diversity > 0.72)
+        // Tighter thresholds: Gemini penalizes repetitive phrasing more.
+        if (diversity > 0.75)
         {
             score += 15;
             highlights.Add("High vocabulary diversity — writing feels fresh");
         }
-        else if (diversity > 0.58)
+        else if (diversity > 0.60)
         {
-            score += 8;
+            score += 7;
         }
         else if (words.Count > 50)
         {
@@ -353,7 +361,8 @@ public sealed class LocalResumeEvaluator : IResumeEvaluator
         var found = TextHeuristics.FindMatches(normalized, ResumeKeywordBank.SectionHeaders);
         var corePresent = TextHeuristics.FindMatches(normalized, ResumeKeywordBank.CoreSections).Count;
 
-        return (corePresent >= 3 ? 5 : corePresent >= 2 ? 2 : 0, found);
+        // Reduced bonus: Gemini gives minimal credit for just having section headers.
+        return (corePresent >= 3 ? 3 : corePresent >= 2 ? 1 : 0, found);
     }
 
     private static string GenerateSummary(int overallScore, AnalysisScores scores)

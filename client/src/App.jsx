@@ -8,6 +8,7 @@ import Analytics from './pages/Analytics';
 import History from './pages/History';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Routes>
           <Route path="/sign-in/*" element={null} />
           <Route path="/sign-up/*" element={null} />
+          <Route path="/forgot-password/*" element={null} />
           <Route path="*" element={<Sidebar />} />
         </Routes>
 
@@ -27,6 +29,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/sign-in/*" element={<SignInPage />} />
             <Route path="/sign-up/*" element={<SignUpPage />} />
+            <Route path="/forgot-password/*" element={<ForgotPasswordPage />} />
             <Route
               path="/profile"
               element={

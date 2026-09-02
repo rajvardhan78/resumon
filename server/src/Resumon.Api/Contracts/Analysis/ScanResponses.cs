@@ -16,7 +16,7 @@ public sealed record ScanHistoryItem(
     int Experience,
     int Knowledge,
     int Creativity,
-    string Source)
+    ResumeAnalysis? Analysis)
 {
     public static ScanHistoryItem From(ScanDocument scan) => new(
         scan.Id,
@@ -27,7 +27,7 @@ public sealed record ScanHistoryItem(
         scan.Experience,
         scan.Knowledge,
         scan.Creativity,
-        scan.Source);
+        scan.Analysis);
 }
 
 /// <summary>Aggregates behind the dashboard tiles.</summary>

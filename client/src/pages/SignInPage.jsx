@@ -69,6 +69,12 @@ function SignInPage() {
           autoComplete="current-password"
           required
         />
+        
+        <div className="flex justify-end mt-2 mb-6">
+          <Link to="/forgot-password" className="text-sm text-text/50 hover:text-success transition-colors">
+            Forgot password?
+          </Link>
+        </div>
 
         <AuthSubmit pending={pending} pendingLabel="Signing in…">
           Sign In

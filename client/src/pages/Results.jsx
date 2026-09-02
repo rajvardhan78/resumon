@@ -87,8 +87,7 @@ function Results() {
     return null;
   }
 
-  const { overallScore, scores, summary, topStrengths, improvements, _source } = analysis;
-  const usedFallback = _source === 'local';
+  const { overallScore, scores, summary, topStrengths, improvements } = analysis;
   const { label: overallLabel, color: overallColor } = scoreLabel(overallScore);
 
   return (
@@ -114,26 +113,6 @@ function Results() {
         >
           + Analyze Another
         </motion.button>
-      </motion.div>
-
-      {/* ── Source badge banner ── */}
-      <motion.div
-        className="flex flex-wrap items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-text/60"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.05 }}
-      >
-        {usedFallback ? (
-          <span className="flex items-center gap-1.5 text-amber-400 font-medium">
-            <span>⚙️</span> Analyzed with local engine — Gemini quota exceeded
-          </span>
-        ) : (
-          <span className="flex items-center gap-1.5 text-success font-medium">
-            <span>✨</span> Powered by Gemini AI
-          </span>
-        )}
-        <span className="text-text/30">·</span>
-        <span>Overall score: <span className="font-semibold" style={{ color: overallColor }}>{overallLabel}</span></span>
       </motion.div>
 
       {/* ── Top row: Overall score ring + dimension bars ── */}

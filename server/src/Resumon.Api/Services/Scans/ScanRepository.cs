@@ -21,6 +21,9 @@ public interface IScanRepository
 
     /// <summary>The most recent scan, so a page refresh can restore the results view.</summary>
     Task<ScanDocument?> GetLatestAsync(string userId, CancellationToken cancellationToken);
+
+    /// <summary>Permanently removes all scans for a user (used when deleting the account).</summary>
+    Task DeleteAllForUserAsync(string userId, CancellationToken cancellationToken);
 }
 
 public sealed class ScanRepository(MongoContext context, ILogger<ScanRepository> logger) : IScanRepository
@@ -90,6 +93,12 @@ public sealed class ScanRepository(MongoContext context, ILogger<ScanRepository>
             .SortByDescending(s => s.ScannedAt)
             .Limit(1)
             .FirstOrDefaultAsync(cancellationToken)!;
+
+    public async Task DeleteAllForUserAsync(string userId, CancellationToken cancellationToken)
+    {
+        var result = await context.Scans.DeleteManyAsync(ByUser(userId), cancellationToken);
+        logger.LogInformation("Deleted {Count} scan(s) for user {UserId}.", result.DeletedCount, userId);
+    }
 
     private static FilterDefinition<ScanDocument> ByUser(string userId)
         => Builders<ScanDocument>.Filter.Eq(s => s.UserId, userId);

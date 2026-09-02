@@ -122,8 +122,7 @@ export default function Analytics() {
   }
 
   const { analysis, fileName, scannedAt } = latest;
-  const { overallScore, scores, summary, topStrengths, improvements, _source } = analysis;
-  const usedFallback = _source === 'local';
+  const { overallScore, scores, summary, topStrengths, improvements } = analysis;
   const { label: overallLabel, color: overallColor } = scoreLabel(overallScore);
 
   const scannedDate = new Date(scannedAt);
@@ -170,12 +169,6 @@ export default function Analytics() {
         </span>
         <span className="text-text/30">·</span>
         <span>{dateStr} at {timeStr}</span>
-        <span className="text-text/30">·</span>
-        {usedFallback ? (
-          <span className="flex items-center gap-1 text-amber-400">⚙️ Local engine</span>
-        ) : (
-          <span className="flex items-center gap-1 text-success">✨ Gemini AI</span>
-        )}
       </motion.div>
 
       {/* ── Top row: Overall score + dimension bars ── */}

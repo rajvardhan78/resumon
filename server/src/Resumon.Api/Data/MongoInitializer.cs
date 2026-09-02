@@ -95,6 +95,12 @@ public sealed class MongoInitializer(
             ],
             cancellationToken);
 
+        await context.OtpTokens.Indexes.CreateOneAsync(
+            new CreateIndexModel<OtpDocument>(
+                Builders<OtpDocument>.IndexKeys.Ascending(t => t.ExpiresAt),
+                new CreateIndexOptions { Name = "expiresAt_ttl", ExpireAfter = TimeSpan.Zero }),
+            cancellationToken: cancellationToken);
+
         logger.LogInformation("MongoDB indexes verified.");
     }
 

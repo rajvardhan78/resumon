@@ -30,6 +30,17 @@ function formatTime(dateVal) {
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
+// ── Highlight chip ────────────────────────────────────────────────────────────
+function Chip({ text, color }) {
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border"
+      style={{ color, borderColor: `${color}40`, backgroundColor: `${color}12` }}
+    >
+      {text}
+    </span>
+  );
+}
 
 // ── Mini bar ──────────────────────────────────────────────────────────────────
 function MiniBar({ score, color }) {
@@ -46,10 +57,20 @@ function MiniBar({ score, color }) {
   );
 }
 
+// ── Dimension detail for expanded view ────────────────────────────────────────
+const DIMENSION_META = [
+  { key: 'keywords',       label: 'Keywords',        icon: '🏷️', color: '#a855f7' },
+  { key: 'experience',     label: 'Experience',      icon: '⚡', color: '#3b82f6' },
+  { key: 'knowledgeDepth', label: 'Knowledge Depth', icon: '💡', color: '#f59e0b' },
+  { key: 'creativity',     label: 'Creativity',      icon: '⭐', color: '#22c55e' },
+];
+
 // ── Single history card ───────────────────────────────────────────────────────
 function HistoryCard({ scan, index }) {
+  const [expanded, setExpanded] = useState(false);
   const color   = scoreColor(scan.overall);
   const label   = scoreLabel(scan.overall);
+  const analysis = scan.analysis;
 
   const dims = [
     { key: 'keywords',   label: 'KW',   score: scan.keywords,   color: '#a855f7' },
@@ -60,67 +81,161 @@ function HistoryCard({ scan, index }) {
 
   return (
     <motion.div
-      className="w-full p-5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/8 hover:border-white/20 transition-all duration-200 group"
+      className="w-full bg-white/5 border border-white/10 rounded-xl hover:bg-white/8 hover:border-white/20 transition-all duration-200 group"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+      {/* ── Clickable header row ── */}
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-5 text-left cursor-pointer"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
 
-        {/* ── Overall score ring ── */}
-        <div className="flex items-center gap-4 shrink-0">
-          {/* Score circle */}
-          <div
-            className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 border-2 font-bold text-lg"
-            style={{ borderColor: color, color, backgroundColor: `${color}15` }}
-          >
-            {scan.overall}
-          </div>
-
-          {/* File + date */}
-          <div className="min-w-0">
-            <p className="font-semibold text-sm text-text truncate max-w-[180px]">
-              {scan.fileName}
-            </p>
-            <p className="text-xs text-text/40 mt-0.5">
-              {formatDate(scan.scannedAt)} · {formatTime(scan.scannedAt)}
-            </p>
-            <span
-              className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border"
-              style={{ color, borderColor: `${color}40`, backgroundColor: `${color}12` }}
+          {/* ── Overall score ring ── */}
+          <div className="flex items-center gap-4 shrink-0">
+            {/* Score circle */}
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 border-2 font-bold text-lg"
+              style={{ borderColor: color, color, backgroundColor: `${color}15` }}
             >
-              {label}
-            </span>
-          </div>
-        </div>
+              {scan.overall}
+            </div>
 
-        {/* ── Dimension mini-bars ── */}
-        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
-          {dims.map((d) => (
-            <div key={d.key} className="flex items-center gap-2">
-              <span className="text-[10px] text-text/40 w-7 shrink-0">{d.label}</span>
-              <MiniBar score={d.score} color={d.color} />
-              <span className="text-[11px] font-semibold w-6 text-right" style={{ color: d.color }}>
-                {d.score}
+            {/* File + date */}
+            <div className="min-w-0">
+              <p className="font-semibold text-sm text-text truncate max-w-[180px]">
+                {scan.fileName}
+              </p>
+              <p className="text-xs text-text/40 mt-0.5">
+                {formatDate(scan.scannedAt)} · {formatTime(scan.scannedAt)}
+              </p>
+              <span
+                className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border"
+                style={{ color, borderColor: `${color}40`, backgroundColor: `${color}12` }}
+              >
+                {label}
               </span>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* ── Source badge ── */}
-        <div className="shrink-0 flex sm:flex-col items-center sm:items-end gap-2">
-          {scan.source === 'gemini' ? (
-            <span className="text-[10px] text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full">
-              ✨ Gemini
-            </span>
-          ) : (
-            <span className="text-[10px] text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full">
-              ⚙️ Local
-            </span>
-          )}
-        </div>
+          {/* ── Dimension mini-bars ── */}
+          <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+            {dims.map((d) => (
+              <div key={d.key} className="flex items-center gap-2">
+                <span className="text-[10px] text-text/40 w-7 shrink-0">{d.label}</span>
+                <MiniBar score={d.score} color={d.color} />
+                <span className="text-[11px] font-semibold w-6 text-right" style={{ color: d.color }}>
+                  {d.score}
+                </span>
+              </div>
+            ))}
+          </div>
 
-      </div>
+          {/* ── Expand chevron ── */}
+          <div className="shrink-0 flex items-center">
+            <motion.svg
+              className="w-5 h-5 text-text/30"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </motion.svg>
+          </div>
+        </div>
+      </button>
+
+      {/* ── Expanded detail section ── */}
+      <AnimatePresence>
+        {expanded && analysis && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-5 space-y-4 border-t border-white/10 pt-4">
+
+              {/* Summary */}
+              {analysis.summary && (
+                <p className="text-xs text-text/60 leading-relaxed">{analysis.summary}</p>
+              )}
+
+              {/* Dimension details */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                {DIMENSION_META.map((d) => {
+                  const dim = analysis.scores?.[d.key];
+                  if (!dim) return null;
+                  return (
+                    <div
+                      key={d.key}
+                      className="p-3 bg-white/5 rounded-lg space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm">{d.icon}</span>
+                          <span className="text-xs font-semibold">{d.label}</span>
+                        </div>
+                        <span className="text-sm font-bold" style={{ color: d.color }}>
+                          {dim.score}
+                        </span>
+                      </div>
+                      {dim.feedback && (
+                        <p className="text-[11px] text-text/50 leading-relaxed">{dim.feedback}</p>
+                      )}
+                      {dim.highlights?.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {dim.highlights.map((h, j) => (
+                            <Chip key={j} text={h} color={d.color} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Strengths & Improvements */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                {analysis.topStrengths?.length > 0 && (
+                  <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-lg">
+                    <h4 className="text-[11px] font-semibold text-emerald-400 mb-1.5 flex items-center gap-1">
+                      <span>✅</span> Strengths
+                    </h4>
+                    <ul className="space-y-1">
+                      {analysis.topStrengths.map((s, i) => (
+                        <li key={i} className="text-[11px] text-text/60 flex items-start gap-1.5">
+                          <span className="text-emerald-400 mt-px shrink-0">•</span>{s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {analysis.improvements?.length > 0 && (
+                  <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg">
+                    <h4 className="text-[11px] font-semibold text-amber-400 mb-1.5 flex items-center gap-1">
+                      <span>🔧</span> Improvements
+                    </h4>
+                    <ul className="space-y-1">
+                      {analysis.improvements.map((s, i) => (
+                        <li key={i} className="text-[11px] text-text/60 flex items-start gap-1.5">
+                          <span className="text-amber-400 mt-px shrink-0">•</span>{s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -239,6 +354,7 @@ export default function History() {
           <span><span className="font-semibold text-[#3b82f6]">EXP</span> = Experience</span>
           <span><span className="font-semibold text-[#f59e0b]">DEP</span> = Knowledge Depth</span>
           <span><span className="font-semibold text-[#22c55e]">CRE</span> = Creativity</span>
+          <span className="text-text/25">· Click a card to expand</span>
         </motion.div>
       )}
 
@@ -270,4 +386,3 @@ export default function History() {
     </div>
   );
 }
-

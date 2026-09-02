@@ -25,4 +25,6 @@ public sealed class MongoOptions
     public string RolesCollection { get; set; } = "roles";
 
     public string RefreshTokensCollection { get; set; } = "refreshTokens";
+
+    public string OtpTokensCollection { get; set; } = "otpTokens";
 }

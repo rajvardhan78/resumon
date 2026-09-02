@@ -39,6 +39,7 @@ public sealed class MongoContext
         Users = Database.GetCollection<ApplicationUser>(settings.UsersCollection);
         Roles = Database.GetCollection<ApplicationRole>(settings.RolesCollection);
         RefreshTokens = Database.GetCollection<RefreshTokenDocument>(settings.RefreshTokensCollection);
+        OtpTokens = Database.GetCollection<OtpDocument>(settings.OtpTokensCollection);
     }
 
     public IMongoClient Client { get; }
@@ -54,6 +55,8 @@ public sealed class MongoContext
     public IMongoCollection<ApplicationRole> Roles { get; }
 
     public IMongoCollection<RefreshTokenDocument> RefreshTokens { get; }
+
+    public IMongoCollection<OtpDocument> OtpTokens { get; }
 
     /// <summary>Round-trips a ping so startup can fail fast on a bad connection string.</summary>
     public Task PingAsync(CancellationToken cancellationToken = default)

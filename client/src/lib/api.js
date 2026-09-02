@@ -247,4 +247,10 @@ export const api = {
   history: (limit = 30) => apiFetch(`/api/history?limit=${limit}`),
   stats: () => apiFetch('/api/stats'),
   latestScan: () => apiFetch('/api/scans/latest'),
+  deleteAccount: (password) => post('/api/auth/delete-account', { password }),
+
+  sendOtp: (email, turnstileToken) => post('/api/auth/send-otp', { email, turnstileToken }, { auth: false }),
+  forgotPassword: (email) => post('/api/auth/forgot-password', { email }, { auth: false }),
+  verifyResetOtp: (email, otp) => post('/api/auth/verify-reset-otp', { email, otp }, { auth: false }),
+  resetPassword: (email, resetToken, newPassword) => post('/api/auth/reset-password', { email, resetToken, newPassword }, { auth: false }),
 };

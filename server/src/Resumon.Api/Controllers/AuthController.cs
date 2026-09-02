@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Resumon.Api.Contracts.Auth;
 using Resumon.Api.Identity;
 using Resumon.Api.Services;
+using Resumon.Api.Services.Scans;
 
 namespace Resumon.Api.Controllers;
 
@@ -19,6 +20,10 @@ public sealed class AuthController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     ITokenService tokenService,
+    IScanRepository scanRepository,
+    IOtpService otpService,
+    ITurnstileService turnstileService,
+    IEmailService emailService,
     TimeProvider timeProvider,
     ILogger<AuthController> logger) : ApiControllerBase
 {
@@ -30,6 +35,14 @@ public sealed class AuthController(
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
         var email = request.Email.Trim();
+
+        var otpValid = await otpService.ValidateAsync(email, request.Otp, "signup", cancellationToken);
+        if (!otpValid)
+        {
+            ModelState.AddModelError(nameof(request.Otp), "Invalid or expired verification code.");
+            return ValidationProblem(ModelState);
+        }
+
         var user = new ApplicationUser
         {
             UserName = email,
@@ -50,6 +63,121 @@ public sealed class AuthController(
         logger.LogInformation("Registered user {UserId}.", user.Id);
 
         return Created(string.Empty, await SignInAsync(user, cancellationToken));
+    }
+
+    [AllowAnonymous]
+    [HttpPost("send-otp")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SendOtp(SendOtpRequest request, CancellationToken cancellationToken)
+    {
+        var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var validTurnstile = await turnstileService.VerifyAsync(request.TurnstileToken, remoteIp, cancellationToken);
+
+        if (!validTurnstile)
+        {
+            return BadRequest(new ErrorResponse("Bot verification failed. Please try again."));
+        }
+
+        var email = request.Email.Trim();
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is not null)
+        {
+            // Since the Register endpoint ultimately reveals if an email is taken, it's better UX 
+            // to fail early here so the user isn't endlessly waiting for an OTP email.
+            return BadRequest(new ErrorResponse("An account with this email already exists."));
+        }
+
+        try
+        {
+            var otp = await otpService.GenerateAndStoreAsync(email, "signup", cancellationToken);
+            await emailService.SendOtpAsync(email, otp, "signup", cancellationToken);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ErrorResponse(ex.Message));
+        }
+    }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var email = request.Email.Trim();
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            // Do not leak whether the email is registered.
+            return NoContent();
+        }
+
+        try
+        {
+            var otp = await otpService.GenerateAndStoreAsync(email, "password-reset", cancellationToken);
+            await emailService.SendOtpAsync(email, otp, "password-reset", cancellationToken);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ErrorResponse(ex.Message));
+        }
+    }
+
+    [AllowAnonymous]
+    [HttpPost("verify-reset-otp")]
+    [ProducesResponseType<object>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyResetOtp(VerifyResetOtpRequest request, CancellationToken cancellationToken)
+    {
+        var email = request.Email.Trim();
+        var otpValid = await otpService.ValidateAsync(email, request.Otp, "password-reset", cancellationToken);
+
+        if (!otpValid)
+        {
+            return BadRequest(new ErrorResponse("Invalid or expired verification code."));
+        }
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user is null)
+        {
+            return BadRequest(new ErrorResponse("Account not found."));
+        }
+
+        // Generate a password reset token. In a real app this might be emailed, but here we verified the OTP.
+        // Return it to the client so they can send it in the reset-password request.
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+
+        return Ok(new { ResetToken = resetToken });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        var email = request.Email.Trim();
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            ModelState.AddModelError(nameof(request.Email), "Account not found.");
+            return ValidationProblem(ModelState);
+        }
+
+        var result = await userManager.ResetPasswordAsync(user, request.ResetToken, request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return ValidationProblem(ToModelState(result));
+        }
+
+        return NoContent();
     }
 
     /// <summary>
@@ -163,6 +291,46 @@ public sealed class AuthController(
         }
 
         return Ok(UserResponse.From(user, await RolesOfAsync(user)));
+    }
+
+    /// <summary>
+    /// Permanently deletes the authenticated user's account and all associated data.
+    /// Requires re-authentication via password to prevent accidental or unauthorized deletion.
+    /// </summary>
+    [Authorize]
+    [HttpPost("delete-account")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DeleteAccount(DeleteAccountRequest request, CancellationToken cancellationToken)
+    {
+        if (CurrentUserId is not { } userId)
+        {
+            return MissingSubject();
+        }
+
+        var user = await userManager.FindByIdAsync(userId);
+
+        if (user is null)
+        {
+            return Unauthorized(new ErrorResponse("Your account could not be found."));
+        }
+
+        // Re-authenticate: the password must be valid before we nuke everything.
+        var check = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
+
+        if (!check.Succeeded)
+        {
+            return Unauthorized(new ErrorResponse("Incorrect password. Account deletion cancelled."));
+        }
+
+        // Delete all user data: scans, refresh tokens, then the user document itself.
+        await scanRepository.DeleteAllForUserAsync(userId, cancellationToken);
+        await tokenService.RevokeAllAsync(userId, cancellationToken);
+        await userManager.DeleteAsync(user);
+
+        logger.LogInformation("Permanently deleted account {UserId}.", userId);
+
+        return NoContent();
     }
 
     /// <summary>
