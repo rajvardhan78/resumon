@@ -34,11 +34,14 @@ export default function SignUpPage() {
 
   const redirectTo = location.state?.from ?? '/';
 
-  // Listen for the global Turnstile event
+  // Bind the global Turnstile callback to our state
   useEffect(() => {
-    const handleTurnstile = (e) => setTurnstileToken(e.detail);
-    window.addEventListener('turnstile', handleTurnstile);
-    return () => window.removeEventListener('turnstile', handleTurnstile);
+    window.onTurnstileSuccess = (token) => {
+      setTurnstileToken(token);
+    };
+    return () => {
+      delete window.onTurnstileSuccess;
+    };
   }, []);
 
   if (isSignedIn) {
@@ -165,13 +168,6 @@ export default function SignUpPage() {
                 data-sitekey={siteKey} 
                 data-callback="onTurnstileSuccess"
               ></div>
-              <script dangerouslySetInnerHTML={{
-                __html: `
-                  window.onTurnstileSuccess = function(token) {
-                    window.dispatchEvent(new CustomEvent('turnstile', { detail: token }));
-                  };
-                `
-              }} />
             </div>
           )}
 
