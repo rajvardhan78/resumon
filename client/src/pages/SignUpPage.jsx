@@ -175,7 +175,7 @@ export default function SignUpPage() {
             </div>
           )}
 
-          <AuthSubmit pending={pending} pendingLabel="Sending verification code…">
+          <AuthSubmit pending={pending} pendingLabel="Sending verification code…" disabled={siteKey && !turnstileToken}>
             Continue
           </AuthSubmit>
         </form>

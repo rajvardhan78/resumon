@@ -123,14 +123,14 @@ export function PasswordField({ id, label, error, hint, ...props }) {
 }
 
 /** Primary submit button that shows a spinner and blocks double submits while a call is open. */
-export function AuthSubmit({ pending, pendingLabel = 'Please wait…', children }) {
+export function AuthSubmit({ pending, disabled, pendingLabel = 'Please wait…', children }) {
   return (
     <motion.button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       aria-busy={pending}
-      whileHover={pending ? undefined : { scale: 1.02 }}
-      whileTap={pending ? undefined : { scale: 0.98 }}
+      whileHover={pending || disabled ? undefined : { scale: 1.02 }}
+      whileTap={pending || disabled ? undefined : { scale: 0.98 }}
       className="w-full py-3 rounded-xl bg-success hover:bg-success/90 text-primary font-semibold
         shadow-lg shadow-success/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed
         focus:outline-none focus:ring-2 focus:ring-success/60 focus:ring-offset-2 focus:ring-offset-primary"
