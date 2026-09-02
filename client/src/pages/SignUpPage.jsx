@@ -5,6 +5,7 @@ import { AuthAlert, AuthCard, AuthField, AuthSubmit, PasswordField } from '../co
 import { api } from '../lib/api';
 
 const PASSWORD_HINT = 'At least 8 characters, with an uppercase letter, a lowercase letter and a number.';
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
 export default function SignUpPage() {
   const { isSignedIn, signUp } = useAuth();
@@ -39,8 +40,34 @@ export default function SignUpPage() {
     window.onTurnstileSuccess = (token) => {
       setTurnstileToken(token);
     };
+
+    const renderWidget = () => {
+      if (window.turnstile && SITE_KEY) {
+        window.turnstile.render('#turnstile-widget', {
+          sitekey: SITE_KEY,
+          callback: 'onTurnstileSuccess',
+        });
+      }
+    };
+
+    window.onTurnstileLoad = renderWidget;
+
+    if (SITE_KEY) {
+      if (window.turnstile) {
+        renderWidget();
+      } else if (!document.getElementById('turnstile-script')) {
+        const script = document.createElement('script');
+        script.id = 'turnstile-script';
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+    }
+
     return () => {
       delete window.onTurnstileSuccess;
+      delete window.onTurnstileLoad;
     };
   }, []);
 
@@ -59,8 +86,7 @@ export default function SignUpPage() {
       return;
     }
 
-    const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
-    if (siteKey && !turnstileToken) {
+    if (SITE_KEY && !turnstileToken) {
       setError('Please complete the bot verification.');
       return;
     }
@@ -106,8 +132,6 @@ export default function SignUpPage() {
       setPending(false);
     }
   };
-
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
   return (
     <AuthCard title="Create Account" subtitle={step === 1 ? 'Sign up to start analyzing your resumes' : 'Check your email for the verification code'}>
@@ -161,17 +185,13 @@ export default function SignUpPage() {
             required
           />
 
-          {siteKey && (
+          {SITE_KEY && (
             <div className="mb-4">
-              <div 
-                className="cf-turnstile" 
-                data-sitekey={siteKey} 
-                data-callback="onTurnstileSuccess"
-              ></div>
+              <div id="turnstile-widget"></div>
             </div>
           )}
 
-          <AuthSubmit pending={pending} pendingLabel="Sending verification code…" disabled={siteKey && !turnstileToken}>
+          <AuthSubmit pending={pending} pendingLabel="Sending verification code…" disabled={SITE_KEY && !turnstileToken}>
             Continue
           </AuthSubmit>
         </form>
