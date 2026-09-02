@@ -1,0 +1,21 @@
+Rahul Verma
+rahul.verma@example.com | Pune, India
+
+Objective
+Junior developer with 2 years experience looking for a backend focused role.
+
+Skills
+HTML, CSS, JavaScript, React, Node.js, Express, MySQL, Git
+
+Work Experience
+Web Developer, Sunrise Digital, 2022 - 2024
+- Developed and maintained three client websites using React and Express.
+- Collaborated with a designer to rebuild the marketing site, which improved by 15 percent
+  the average page load score.
+- Supported the QA team during release weeks.
+
+Education
+Bachelor of Computer Applications, Pune University, 2019 - 2022
+
+Interests
+Cricket, photography, reading about new frameworks.

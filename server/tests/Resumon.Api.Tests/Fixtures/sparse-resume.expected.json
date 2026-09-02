@@ -1,0 +1,45 @@
+{
+  "overallScore": 9,
+  "summary": "The resume needs substantial work — particularly in keywords, experience, knowledge depth, creativity. Start by expanding your experience section, listing technical skills and adding measurable results.",
+  "scores": {
+    "keywords": {
+      "score": 12,
+      "feedback": "Weak keyword signal. Add skills from: frontend, databases, devops, tools.",
+      "highlights": [
+        "\"c\" detected",
+        "\"r\" detected",
+        "\"worker\" detected"
+      ]
+    },
+    "experience": {
+      "score": 0,
+      "feedback": "No quantified achievements found. Add metrics like \"reduced load time by 40%\".",
+      "highlights": []
+    },
+    "knowledgeDepth": {
+      "score": 12,
+      "feedback": "No projects detected. Add a Projects section with descriptions.",
+      "highlights": [
+        "Resume is very short (58 words) — expand it",
+        "1 backend/infra/AI tools detected",
+        "Educational qualification detected"
+      ]
+    },
+    "creativity": {
+      "score": 15,
+      "feedback": "No measurable impact found. Add % improvements, user counts, etc.",
+      "highlights": [
+        "High vocabulary diversity — writing feels fresh"
+      ]
+    }
+  },
+  "topStrengths": [
+    "Resume submitted — that is the first step!"
+  ],
+  "improvements": [
+    "Quantify experience: \"reduced load time by 35%\" beats \"improved performance\"",
+    "Add a Projects section with GitHub links and certifications",
+    "Add more tech keywords — languages, frameworks, tools and cloud services"
+  ],
+  "_source": "local"
+}

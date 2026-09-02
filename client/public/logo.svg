@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="32" height="32" rx="8" ry="8" fill="url(#bg)"/>
+  <!-- Bold R letterform matching sidebar style -->
+  <text
+    x="16"
+    y="23"
+    font-family="Inter, system-ui, -apple-system, sans-serif"
+    font-size="20"
+    font-weight="700"
+    fill="#0a0a0a"
+    text-anchor="middle"
+    dominant-baseline="auto"
+    letter-spacing="-0.5"
+  >R</text>
+</svg>
+

@@ -1,0 +1,63 @@
+{
+  "overallScore": 100,
+  "summary": "Excellent resume with strong technical depth, clear experience progression and measurable impact. It is well-positioned for competitive roles.",
+  "scores": {
+    "keywords": {
+      "score": 100,
+      "feedback": "Excellent keyword coverage — 64 relevant skills across 8 categories.",
+      "highlights": [
+        "\"javascript\" detected",
+        "\"typescript\" detected",
+        "\"python\" detected",
+        "\"java\" detected",
+        "\"c#\" detected",
+        "\"c\" detected"
+      ]
+    },
+    "experience": {
+      "score": 100,
+      "feedback": "Strong experience section — clear roles, timelines and measurable impact.",
+      "highlights": [
+        "6+ years of experience stated",
+        "5 employment period(s) with dates",
+        "Roles: software engineer, full stack developer, product manager",
+        "12 strong action verbs used",
+        "16 quantified achievement(s) with numbers"
+      ]
+    },
+    "knowledgeDepth": {
+      "score": 85,
+      "feedback": "Deep technical profile — strong stack breadth, projects and credentials.",
+      "highlights": [
+        "5 certification(s) detected",
+        "4 project mention(s)",
+        "35 backend/infra/AI tools detected",
+        "Educational qualification detected",
+        "GitHub profile linked",
+        "Research or publication mentioned"
+      ]
+    },
+    "creativity": {
+      "score": 100,
+      "feedback": "Standout presentation — metrics, side projects and unique voice.",
+      "highlights": [
+        "16 metric-driven statement(s)",
+        "Well-structured (13 bullet points)",
+        "9 side project / open-source signal(s)",
+        "Awards or recognition mentioned",
+        "Community involvement or volunteering noted",
+        "High vocabulary diversity — writing feels fresh"
+      ]
+    }
+  },
+  "topStrengths": [
+    "keyword coverage (100/100)",
+    "work experience (100/100)",
+    "impact & presentation (100/100)"
+  ],
+  "improvements": [
+    "Use strong action verbs: built, deployed, led, optimised, scaled",
+    "Link your GitHub, portfolio or LinkedIn prominently at the top"
+  ],
+  "_source": "local"
+}

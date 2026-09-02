@@ -1,0 +1,14 @@
+{
+  "//": "Copy to appsettings.Local.json and fill in. That file is gitignored — never commit real secrets.",
+  "Mongo": {
+    "ConnectionString": "mongodb+srv://<user>:<password>@<cluster>.mongodb.net/resumon?retryWrites=true&w=majority"
+  },
+  "Jwt": {
+    "//": "At least 32 characters. Generate one with: openssl rand -base64 48",
+    "Key": "replace-with-a-long-random-secret-at-least-32-chars"
+  },
+  "Gemini": {
+    "//": "Google AI Studio key: https://aistudio.google.com/apikey. Leave blank to score locally only.",
+    "ApiKey": ""
+  }
+}

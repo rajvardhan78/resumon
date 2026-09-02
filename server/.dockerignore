@@ -1,0 +1,19 @@
+# Keep the build context small and keep local secrets out of the image entirely.
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+
+# Local development secrets: connection string, JWT signing key, Gemini API key.
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+
+# Test output
+**/TestResults/
+**/*.trx
+
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md

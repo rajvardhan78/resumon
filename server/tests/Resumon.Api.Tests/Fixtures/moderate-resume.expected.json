@@ -1,0 +1,54 @@
+{
+  "overallScore": 39,
+  "summary": "The resume needs substantial work — particularly in keywords, experience, knowledge depth, creativity. Start by expanding your experience section, listing technical skills and adding measurable results.",
+  "scores": {
+    "keywords": {
+      "score": 49,
+      "feedback": "Weak keyword signal. Add skills from: mobile, softSkills.",
+      "highlights": [
+        "\"javascript\" detected",
+        "\"java\" detected",
+        "\"c\" detected",
+        "\"r\" detected",
+        "\"react\" detected",
+        "\"css\" detected"
+      ]
+    },
+    "experience": {
+      "score": 35,
+      "feedback": "Limited experience signals. Expand work history with titles and date ranges.",
+      "highlights": [
+        "2+ years of experience stated",
+        "2 employment period(s) with dates",
+        "4 strong action verbs used",
+        "1 quantified achievement(s) with numbers"
+      ]
+    },
+    "knowledgeDepth": {
+      "score": 24,
+      "feedback": "No projects detected. Add a Projects section with descriptions.",
+      "highlights": [
+        "Resume is very short (93 words) — expand it",
+        "7 backend/infra/AI tools detected",
+        "Educational qualification detected"
+      ]
+    },
+    "creativity": {
+      "score": 24,
+      "feedback": "Presentation needs work. Structure bullets and show awards/side projects.",
+      "highlights": [
+        "1 metric-driven statement(s)",
+        "High vocabulary diversity — writing feels fresh"
+      ]
+    }
+  },
+  "topStrengths": [
+    "Well-organised with 5 clear sections"
+  ],
+  "improvements": [
+    "Include metrics, side projects, hackathons or open-source contributions",
+    "Add a Projects section with GitHub links and certifications",
+    "Quantify experience: \"reduced load time by 35%\" beats \"improved performance\""
+  ],
+  "_source": "local"
+}

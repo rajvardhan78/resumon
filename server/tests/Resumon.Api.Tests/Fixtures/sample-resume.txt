@@ -1,0 +1,53 @@
+ALEX MORGAN
+Senior Software Engineer — Bengaluru, India
+alex.morgan@example.com | github.com/alexmorgan | https://alexmorgan.dev
+
+SUMMARY
+Full stack developer with 6+ years of professional experience building React and Node.js
+products on AWS. Comfortable owning a feature from Figma file to production dashboard.
+
+TECHNICAL SKILLS
+Languages: JavaScript, TypeScript, Python, Go, C#
+Frontend: React, Next.js, Redux, TailwindCSS, Framer Motion, Vite
+Backend: Node.js, Express, FastAPI, GraphQL, gRPC, microservices, serverless
+Databases: PostgreSQL, MongoDB, Redis, Prisma, DynamoDB
+DevOps: Docker, Kubernetes, Terraform, GitHub Actions, AWS, Vercel, Prometheus, Grafana
+ML/AI: PyTorch, LangChain, RAG, vector database, embedding, generative ai
+Tools: Git, Jira, Postman, Jest, Playwright, ESLint
+
+PROFESSIONAL EXPERIENCE
+
+Senior Software Engineer, Northwind Labs — Jan 2021 - Present
+• Led a team of five engineers and shipped a checkout rewrite that increased by 32 percent
+  the conversion rate across 180,000 users.
+• Reduced by 45 the p95 latency of the pricing service, taking it from 900 ms response to
+  120 ms response after a Redis caching layer and query rewrite.
+• Architected a multi-tenant Kubernetes platform serving 12,000 requests per sec at peak.
+• Mentored four junior engineers and established the internal code review guidelines.
+
+Software Engineer, Cobalt Systems — 2018 - 2021
+• Built and deployed 14 projects on AWS Lambda, automating a reporting pipeline that saved
+  $240,000 annually.
+• Migrated a legacy Django monolith to FastAPI microservices, improving throughput 3x.
+• Collaborated with product managers to launch an analytics dashboard used by 40 clients.
+
+Engineering Intern, Helios Analytics — Summer 2017
+• Prototyped a computer vision model in PyTorch reaching top 5 % accuracy on the internal
+  benchmark.
+
+PROJECTS
+• Resumon — an open source resume analyzer built from scratch with React, Node.js and Gemini.
+  Published package on npm with 4,200 downloads and 310 stars.
+• Ledgerly — a personal project side project for expense tracking; 2,500 users, 1st place
+  winner at the Bengaluru FinTech hackathon.
+
+EDUCATION
+B.Tech in Computer Science, National Institute of Technology — 2014 - 2018
+
+CERTIFICATIONS
+AWS Certified Solutions Architect, Certified Kubernetes Administrator (CKA)
+
+AWARDS & COMMUNITY
+• Winner, Northwind Innovation Prize 2022. Recipient of a merit scholarship in 2016.
+• Volunteer mentor at a local nonprofit teaching Python to 60 students.
+• Presented at an IEEE conference on scalable inference; co-author of a research paper.

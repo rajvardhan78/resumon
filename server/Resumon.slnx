@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Resumon.Api/Resumon.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Resumon.Api.Tests/Resumon.Api.Tests.csproj" />
+  </Folder>
+</Solution>
