@@ -37,15 +37,11 @@ export default function SignUpPage() {
 
   // Bind the global Turnstile callback to our state
   useEffect(() => {
-    window.onTurnstileSuccess = (token) => {
-      setTurnstileToken(token);
-    };
-
     const renderWidget = () => {
       if (window.turnstile && SITE_KEY) {
         window.turnstile.render('#turnstile-widget', {
           sitekey: SITE_KEY,
-          callback: 'onTurnstileSuccess',
+          callback: (token) => setTurnstileToken(token),
         });
       }
     };
@@ -66,7 +62,6 @@ export default function SignUpPage() {
     }
 
     return () => {
-      delete window.onTurnstileSuccess;
       delete window.onTurnstileLoad;
     };
   }, []);
